@@ -1,9 +1,8 @@
-const db = require('../config/firebaseConfig');
+const db = require('../config/firestoreConfig');
 
 exports.getStations = async (req, res) => {
     try {
-        const snapshot = await db.collection('stations').get();
-        const stations = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const [stations] = await db.query('SELECT * FROM stations');
         res.status(200).json(stations);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -11,12 +10,16 @@ exports.getStations = async (req, res) => {
 };
 
 exports.createStation = async (req, res) => {
+    const { name, location } = req.body;
+
+    if (!name || !location) {
+        return res.status(400).json({ message: 'Name and location are required' });
+    }
+
     try {
-        const { name, location } = req.body;
-        const station = { name, location };
-        const docRef = await db.collection('stations').add(station);
-        res.status(201).json({ id: docRef.id, ...station });
+        await db.query('INSERT INTO stations (name, location) VALUES (?, POINT(?, ?))', [name, location.lat, location.lng]);
+        res.status(201).json({ message: 'Station created successfully' });
     } catch (err) {
-        res.status(400).json({ message: err.message });
+        res.status(500).json({ message: err.message });
     }
 };
