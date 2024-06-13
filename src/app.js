@@ -1,23 +1,19 @@
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
-const cors = require('cors');
-const stationRoutes = require('./routes/stationRoutes');
+const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
-const pageRoutes = require('./routes/pageRoutes');
+const destinationRoutes = require('./routes/destinationRoutes');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
 app.use(bodyParser.json());
 
-// Routes
-app.use('/api/stations', stationRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/pages', pageRoutes);
+app.use('/api/destinations', destinationRoutes);
 
-// Start the server
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
