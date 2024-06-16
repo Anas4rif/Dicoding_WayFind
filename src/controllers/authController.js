@@ -5,10 +5,10 @@ const db = require('../config/mysqlConfig');
 const SECRET_KEY = process.env.SECRET_KEY;
 
 exports.register = async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, name, age, gender } = req.body;
 
-    if (!email || !password) {
-        return res.status(400).json({ message: 'Email and password are required' });
+    if (!email || !password || !name || !age || !gender) {
+        return res.status(400).json({ message: 'All fields are required' });
     }
 
     try {
@@ -18,12 +18,15 @@ exports.register = async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        await db.query('INSERT INTO users (email, password) VALUES (?, ?)', [email, hashedPassword]);
+        await db.query('INSERT INTO users (email, password, name, age, gender) VALUES (?, ?, ?, ?, ?)', 
+            [email, hashedPassword, name, age, gender]);
+
         res.status(201).json({ message: 'User registered successfully' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 };
+
 
 exports.login = async (req, res) => {
     const { email, password } = req.body;
@@ -44,13 +47,36 @@ exports.login = async (req, res) => {
             return res.status(400).json({ message: 'Invalid email or password' });
         }
 
-        const token = jwt.sign({ id: user.id, email: user.email }, SECRET_KEY, { expiresIn: '1h' });
+        const token = jwt.sign({ id: user.id, email: user.email, name: user.name }, SECRET_KEY, { expiresIn: '1h' });
         res.status(200).json({ token });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 };
 
+
 exports.logout = (req, res) => {
     res.status(200).json({ message: 'Logged out successfully' });
+};
+
+exports.getUserByToken = async (req, res) => {
+    const token = req.headers.authorization.split(" ")[1];
+
+    if (!token) {
+        return res.status(401).json({ message: 'Access denied, no token provided' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, SECRET_KEY);
+        const [users] = await db.query('SELECT * FROM users WHERE id = ?', [decoded.id]);
+
+        if (users.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const user = users[0];
+        res.status(200).json({ user });
+    } catch (err) {
+        res.status(400).json({ message: 'Invalid token' });
+    }
 };
