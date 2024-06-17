@@ -6,7 +6,7 @@ const { processInput } = require('../services/modelService');
 // Load the model
 let model;
 (async () => {
-    model = await tf.loadLayersModel(`file://${path.join(__dirname, '..', 'model.json')}`);
+    model = await tf.loadLayersModel(`file://${path.join(__dirname, '..', 'model', 'model.json')}`);
     console.log("Model loaded successfully.");
 })();
 
