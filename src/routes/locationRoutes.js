@@ -1,8 +1,9 @@
 const express = require('express');
-const router = express.Router();
-const locationController = require('../controllers/locationController');
+const locationController = require('../controllers/locationController'); // Pastikan ini benar
 
-// Route to fetch locations (pickup location and destination)
-router.get('/locations', locationController.fetchLocationsFromApp);
+const router = express.Router();
+
+router.get('/pickup', locationController.getPickupLocation); // Pastikan controller ini ada
+router.get('/destination', locationController.getDestination); // Pastikan controller ini ada
 
 module.exports = router;
