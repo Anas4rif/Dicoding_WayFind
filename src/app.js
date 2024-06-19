@@ -12,7 +12,7 @@ app.use(bodyParser.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/model', modelRoutes);
-
+app.use('/api', locationRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

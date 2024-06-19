@@ -1,5 +1,4 @@
 const tf = require('@tensorflow/tfjs-node');
-const axios = require('axios');
 const path = require('path');
 
 let model;
@@ -7,22 +6,6 @@ let model;
     model = await tf.loadLayersModel(`file://${path.join(__dirname, '..', 'model', 'model.json')}`);
     console.log("Model loaded successfully.");
 })();
-
-const GOOGLE_MAPS_API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY';
-
-// Get distance between two locations using Google Maps Distance Matrix API
-const getDistance = async (origin, destination) => {
-    const response = await axios.get('https://maps.googleapis.com/maps/api/distancematrix/json', {
-        params: {
-            origins: `${origin.lat},${origin.lng}`,
-            destinations: `${destination.lat},${destination.lng}`,
-            key: GOOGLE_MAPS_API_KEY
-        }
-    });
-
-    const distance = response.data.rows[0].elements[0].distance.value; // distance in meters
-    return distance / 1000; // convert to kilometers
-};
 
 // Calculate price based on vehicle type and distance
 const calculatePrice = (vehicleType, distance) => {
@@ -38,9 +21,7 @@ const calculatePrice = (vehicleType, distance) => {
 
 // Process input and get prediction from model
 const processInput = async (inputData) => {
-    const { age, gender, userLocation, destinationLocation } = inputData;
-
-    const distance = await getDistance(userLocation, destinationLocation);
+    const { age, gender, distance } = inputData;
 
     // Prepare input for the model
     const inputTensor = tf.tensor2d([[age, gender, distance]]); // assuming the model expects age, gender, and distance

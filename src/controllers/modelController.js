@@ -23,3 +23,21 @@ exports.predict = async (req, res) => {
     }
 };
 
+// Receive distance and calculate the price
+exports.receiveDistance = async (req, res) => {
+    try {
+        const { age, gender, distance } = req.body;
+
+        if (!age || !gender || !distance) {
+            return res.status(400).json({ message: 'Age, gender, and distance are required' });
+        }
+
+        // Process input through the model
+        const inputData = { age, gender, distance };
+        const result = await processInput(inputData);
+
+        res.status(200).json(result);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
