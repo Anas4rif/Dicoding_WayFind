@@ -21,10 +21,16 @@ const calculatePrice = (vehicleType, distance) => {
 
 // Process input and get prediction from model
 const processInput = async (inputData) => {
-    const { age, gender, distance } = inputData;
+    const { age, gender, pickupLocation, destination } = inputData;
+
+    // Encode gender
+    const genderValue = gender === 'male' ? 1 : 0;
 
     // Prepare input for the model
-    const inputTensor = tf.tensor2d([[age, gender, distance]]); // assuming the model expects age, gender, and distance
+    const [pickupLatitude, pickupLongitude] = pickupLocation.split(',').map(Number);
+    const destinationValue = destination; // Assuming destination is received as a numeric value or string to be converted
+
+    const inputTensor = tf.tensor2d([[age, genderValue, pickupLatitude, pickupLongitude]]);
 
     // Get prediction from the model
     const prediction = model.predict(inputTensor);
@@ -35,16 +41,10 @@ const processInput = async (inputData) => {
     const highestProbIndex = output[0].indexOf(Math.max(...output[0]));
     const selectedVehicle = vehicleTypes[highestProbIndex];
 
-    // Calculate price
-    const price = calculatePrice(selectedVehicle, distance);
-
-    return {
-        vehicle: selectedVehicle,
-        price: price,
-        distance: distance
-    };
+    return selectedVehicle;
 };
 
 module.exports = {
-    processInput
+    processInput,
+    calculatePrice
 };
