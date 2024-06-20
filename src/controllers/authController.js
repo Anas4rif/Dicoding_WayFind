@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../config/mysqlConfig');
 
-const SECRET_KEY = process.env.SECRET_KEY;
+const SECRET_KEY = process.env.SECRET_KEY; 
 
 exports.register = async (req, res) => {
     const { email, password, name, age, gender } = req.body;
@@ -18,15 +18,16 @@ exports.register = async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        await db.query('INSERT INTO users (email, password, name, age, gender) VALUES (?, ?, ?, ?, ?)', 
+        const [result] = await db.query('INSERT INTO users (email, password, name, age, gender) VALUES (?, ?, ?, ?, ?)', 
             [email, hashedPassword, name, age, gender]);
 
-        res.status(201).json({ message: 'User registered successfully' });
+        const token = jwt.sign({ id: result.insertId, email, name }, SECRET_KEY, { expiresIn: '1h' });
+
+        res.status(201).json({ message: 'User registered successfully', token });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 };
-
 
 exports.login = async (req, res) => {
     const { email, password } = req.body;
@@ -53,7 +54,6 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
-
 
 exports.logout = (req, res) => {
     res.status(200).json({ message: 'Logged out successfully' });
