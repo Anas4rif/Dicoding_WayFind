@@ -1,26 +1,27 @@
 const express = require('express');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
 const { getProfile } = require('../controllers/profileController');
-const jwt = require('jsonwebtoken'); // Pastikan Anda mengimport JWT
+
+// Middleware untuk memeriksa token
 router.get('/profile', (req, res) => {
-    const token = req.header('Authorization').replace('Bearer ', '');
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+
+    if (!token) {
+        console.log('Token not provided');
+        return res.status(401).json({ message: 'Please authenticate.' });
+    }
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const userId = decoded.id; // Mendapatkan user ID dari token
+        console.log('Token received:', token);
+        const decoded = jwt.verify(token, process.env.SECRET_KEY);
+        console.log('Token decoded:', decoded);
+        const userId = decoded.id;
+        req.user = { id: userId }; // Set user ID to request object for controller use
 
-        // Sekarang Anda bisa langsung melakukan query ke database atau
-        // layanan autentikasi untuk mendapatkan profil user berdasarkan userId
-        // Contoh: Mengambil data dari database
-        const userProfile = {
-            name: "John Doe",
-            age: 30,
-            email: "johndoe@example.com",
-            gender: "male"
-        };
-
-        res.status(200).json(userProfile);
+        getProfile(req, res); // Call the controller
     } catch (err) {
+        console.log('Error verifying token:', err.message);
         res.status(401).json({ message: 'Please authenticate.' });
     }
 });
